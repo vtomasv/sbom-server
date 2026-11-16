@@ -1,0 +1,11 @@
+/config.json
+/build/
+/bin/
+/runtime/
+/secrets/
+/lab/.local/
+/lab/.local.tmp-*/
+*.pem
+*.crt
+*.key
+.DS_Store

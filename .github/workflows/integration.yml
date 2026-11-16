@@ -1,0 +1,43 @@
+name: Laboratorio SBOM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: sbom-server
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: vtomasv/sbom-probe
+          ref: main
+          path: sbom-probe
+          persist-credentials: false
+      - name: Preparar y ejecutar el laboratorio
+        working-directory: sbom-server/lab
+        run: |
+          python3 prepare.py
+          docker compose up -d --build
+          python3 verify.py --snapshot "$RUNNER_TEMP/sbom-snapshot.json"
+      - name: Verificar identidad después de recrear las sondas
+        working-directory: sbom-server/lab
+        run: |
+          docker compose up -d --force-recreate --no-deps alpine-ops debian-dev ubuntu-ops
+          python3 verify.py --compare "$RUNNER_TEMP/sbom-snapshot.json"
+      - name: Mostrar registros si la prueba falla
+        if: failure()
+        working-directory: sbom-server/lab
+        run: docker compose logs --no-color --tail 80
+      - name: Detener el laboratorio
+        if: always()
+        working-directory: sbom-server/lab
+        run: docker compose down

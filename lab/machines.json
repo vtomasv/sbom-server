@@ -1,0 +1,26 @@
+{
+  "alpine-ops": {
+    "client_id": "acme",
+    "group": "servidores",
+    "zone": "santiago",
+    "department": "plataforma",
+    "tags": {"tipo": "operaciones", "ambiente": "produccion"},
+    "package": "jq"
+  },
+  "debian-dev": {
+    "client_id": "acme",
+    "group": "desarrollo",
+    "zone": "valparaiso",
+    "department": "ingenieria",
+    "tags": {"tipo": "desarrollo", "ambiente": "integracion"},
+    "package": "git"
+  },
+  "ubuntu-ops": {
+    "client_id": "globex",
+    "group": "servidores",
+    "zone": "concepcion",
+    "department": "seguridad",
+    "tags": {"tipo": "operaciones", "ambiente": "laboratorio"},
+    "package": "curl"
+  }
+}

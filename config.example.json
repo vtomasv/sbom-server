@@ -1,0 +1,13 @@
+{
+  "listen": ":8443",
+  "data_dir": "/var/lib/sbom-server",
+  "tls_cert": "/secrets/server.crt",
+  "tls_key": "/secrets/server.key",
+  "client_ca": "/secrets/ca.crt",
+  "admin_token": "",
+  "clients": {
+    "cliente-a": "",
+    "cliente-b": ""
+  },
+  "max_report_bytes": 67108864
+}

@@ -1,0 +1,13 @@
+.git
+.github
+lab/.local
+lab/.local.tmp-*
+runtime
+secrets
+config.json
+*.pem
+*.crt
+*.key
+**/*.pem
+**/*.crt
+**/*.key

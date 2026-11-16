@@ -1,0 +1,76 @@
+name: sbom-lab
+
+x-probe: &probe
+  depends_on:
+    - server
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  cap_add: [DAC_OVERRIDE]
+  security_opt: [no-new-privileges:true]
+  tmpfs:
+    - /tmp:size=768m,mode=1777
+  networks: [lab]
+
+services:
+  server:
+    build:
+      context: ..
+    command: ["-config", "/etc/sbom/config.json"]
+    # These locally generated keys remain mode 0600 on the Docker Desktop host.
+    user: "0:0"
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [DAC_OVERRIDE]
+    security_opt: [no-new-privileges:true]
+    ports:
+      - "127.0.0.1:${SBOM_LAB_PORT:-8443}:8443"
+    volumes:
+      - ./.local/server:/etc/sbom:ro
+      - server-state:/var/lib/sbom-server
+    networks: [lab]
+
+  alpine-ops:
+    <<: *probe
+    hostname: alpine-ops
+    build:
+      context: ${SBOM_PROBE_CONTEXT:-../../sbom-probe}
+      args:
+        DISTRO: alpine:3.22
+        LAB_PACKAGES: jq
+    volumes:
+      - ./.local/alpine-ops:/etc/sbom:ro
+      - alpine-state:/var/lib/sbom-probe
+
+  debian-dev:
+    <<: *probe
+    hostname: debian-dev
+    build:
+      context: ${SBOM_PROBE_CONTEXT:-../../sbom-probe}
+      args:
+        DISTRO: debian:13-slim
+        LAB_PACKAGES: git
+    volumes:
+      - ./.local/debian-dev:/etc/sbom:ro
+      - debian-state:/var/lib/sbom-probe
+
+  ubuntu-ops:
+    <<: *probe
+    hostname: ubuntu-ops
+    build:
+      context: ${SBOM_PROBE_CONTEXT:-../../sbom-probe}
+      args:
+        DISTRO: ubuntu:24.04
+        LAB_PACKAGES: curl
+    volumes:
+      - ./.local/ubuntu-ops:/etc/sbom:ro
+      - ubuntu-state:/var/lib/sbom-probe
+
+networks:
+  lab:
+
+volumes:
+  server-state:
+  alpine-state:
+  debian-state:
+  ubuntu-state:

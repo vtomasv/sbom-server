@@ -1,0 +1,82 @@
+{{define "head"}}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventario SBOM</title>
+<style>
+:root{color-scheme:light dark;font:16px/1.5 system-ui,sans-serif;--accent:#215baf;--panel:#edf3fa;--line:#b8cbd9;--text:#162536;--bg:#fff}
+@media(prefers-color-scheme:dark){:root{--accent:#a5c9ff;--panel:#202f40;--line:#46586c;--text:#e6edf5;--bg:#121923}}
+body{margin:0;background:var(--bg);color:var(--text)}main{max-width:76rem;padding:2rem clamp(1rem,4vw,3rem);margin:auto}
+a{color:var(--accent)}h1{margin:.4rem 0 1rem;letter-spacing:-.035em}p{margin:.8rem 0}
+form{display:flex;flex-wrap:wrap;align-items:end;gap:.75rem;padding:1rem;background:var(--panel);border-radius:.5rem}
+label{display:grid;gap:.25rem;font-size:.9rem}input,button{font:inherit;padding:.4rem .55rem;border:1px solid var(--line);border-radius:.25rem;color:inherit;background:var(--bg)}
+button{cursor:pointer;font-weight:600}section{overflow:auto}table{border-collapse:collapse;width:100%;font-size:.9rem;text-align:left}
+caption{text-align:left;padding:1rem 0 .45rem;font-weight:600}th,td{border-bottom:1px solid var(--line);padding:.65rem .6rem;vertical-align:top}th{background:var(--panel)}
+td code{overflow-wrap:anywhere}ul{margin:0;padding-left:1rem}nav{display:flex;flex-wrap:wrap;gap:1.25rem;margin:1rem 0}dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:.35rem .75rem}dt{font-weight:600}dd{margin:0;overflow-wrap:anywhere}
+</style>
+</head>
+<body><main>
+{{end}}
+{{define "pagination"}}
+{{if or .Previous .Next}}<nav aria-label="Páginas">{{if .Previous}}<a href="{{.Previous}}">Anterior</a>{{end}}{{if .Next}}<a href="{{.Next}}">Siguiente</a>{{end}}</nav>{{end}}
+{{end}}
+{{define "machines"}}
+{{template "head"}}
+<h1>Inventario SBOM</h1>
+<form method="get" action="/">
+{{if .Admin}}<label>Cliente <input name="client_id" value="{{.Client}}" maxlength="64"></label>{{end}}
+<label>Grupo <input name="group" value="{{.Group}}" maxlength="128"></label>
+<label>Zona <input name="zone" value="{{.Zone}}" maxlength="128"></label>
+<label>Departamento <input name="department" value="{{.Dept}}" maxlength="128"></label>
+<label>Etiqueta <input name="tag" value="{{.Tag}}" placeholder="tipo=desarrollo"></label>
+{{range .Tags}}<input type="hidden" name="tag" value="{{.}}">{{end}}
+{{if .Machine}}<input type="hidden" name="machine_id" value="{{.Machine}}">{{end}}
+<button type="submit">Filtrar</button> <a href="/">Quitar filtros</a>
+</form>
+<section aria-label="Resultados">
+<table>
+<caption>Máquinas con inventario vigente ({{.Items.Total}})</caption>
+<thead><tr><th scope="col">Máquina</th><th scope="col">Cliente</th><th scope="col">Grupo</th><th scope="col">Zona</th><th scope="col">Departamento</th><th scope="col">Etiquetas</th><th scope="col">Último inventario UTC</th></tr></thead>
+<tbody>
+{{range .Items.Items}}
+<tr><td><strong>{{.Hostname}}</strong><br>{{.OS}} / {{.Arch}}</td><td>{{.ClientID}}</td><td>{{.Metadata.Group}}</td><td>{{.Metadata.Zone}}</td><td>{{.Metadata.Department}}</td>
+<td>{{if .Metadata.Tags}}<ul>{{range $name, $value := .Metadata.Tags}}<li>{{$name}}={{$value}}</li>{{end}}</ul>{{end}}</td>
+<td><a href="/reports/{{.ReportID}}?client_id={{.ClientID}}">{{.PackageCount}} componentes</a><br><time datetime="{{.CollectedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.CollectedAt.Format "02/01/2006 15:04"}}</time></td></tr>
+{{else}}<tr><td colspan="7">Sin máquinas para esta consulta.</td></tr>{{end}}
+</tbody>
+</table>
+</section>
+{{template "pagination" .Links}}
+</main></body></html>
+{{end}}
+{{define "report"}}
+{{template "head"}}
+<nav aria-label="Inventario"><a href="/">Máquinas</a><a href="{{.Download}}">Descargar CycloneDX JSON</a><a href="{{.History}}">Historial JSON</a></nav>
+<h1>{{.Info.Hostname}}</h1>
+<dl>
+<dt>Cliente</dt><dd>{{.Info.ClientID}}</dd>
+<dt>Máquina</dt><dd><code>{{.Info.MachineID}}</code></dd>
+<dt>Origen</dt><dd><code>{{.Info.Source}}</code></dd>
+<dt>Fecha UTC</dt><dd><time datetime="{{.Info.CollectedAt.Format "2006-01-02T15:04:05Z07:00"}}">{{.Info.CollectedAt.Format "02/01/2006 15:04"}}</time></dd>
+<dt>Formato</dt><dd>CycloneDX {{.Info.SpecVersion}}</dd>
+</dl>
+<form method="get">
+<input type="hidden" name="client_id" value="{{.Info.ClientID}}">
+<label>Nombre del componente <input type="search" name="name" value="{{.Name}}" maxlength="256"></label>
+<button type="submit">Buscar</button>
+</form>
+<section aria-label="Resultados">
+<table>
+<caption>Componentes ({{.Items.Total}})</caption>
+<thead><tr><th scope="col">Nombre</th><th scope="col">Versión</th><th scope="col">Tipo</th><th scope="col">Paquete</th></tr></thead>
+<tbody>
+{{range .Items.Items}}<tr><td>{{.Name}}</td><td>{{.Version}}</td><td>{{.Type}}</td><td><code>{{.PURL}}</code></td></tr>
+{{else}}<tr><td colspan="4">Sin componentes para esta consulta.</td></tr>{{end}}
+</tbody>
+</table>
+</section>
+{{template "pagination" .Links}}
+</main></body></html>
+{{end}}
