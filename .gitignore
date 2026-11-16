@@ -9,3 +9,6 @@
 *.crt
 *.key
 .DS_Store
+
+/provision/
+*.token

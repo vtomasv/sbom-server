@@ -124,3 +124,7 @@ go vet ./...
 ## Laboratorio Docker
 
 [Ejecuta el laboratorio local](lab/README.md) con Alpine, Debian, Ubuntu, dos clientes y mTLS. La prueba comprueba el inventario real, los filtros y la persistencia del UUID.
+
+## Alta de clientes
+
+La [guía de despliegue](docs/DEPLOYMENT.md) cubre la emisión de certificados, la configuración de las sondas y la rotación de credenciales.
